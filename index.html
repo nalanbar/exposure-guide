@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Exposure Guide</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Digital recreation of vintage photography slide rule for exposure calculations">
+    <meta name="theme-color" content="#007AFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Exposure Guide">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            transition: all 0.3s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            color: #333333;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        body.light-mode .theme-toggle {
+            border-color: rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.8);
+            color: #333333;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f5f5f5;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .tab-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #007AFF 0%, #0056D6 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #f5f5f5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #007AFF 0%, #0056D6 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+            background: linear-gradient(135deg, #0056D6 0%, #003DA3 100%);
+        }
+
+        .toggle-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toggle-option.active {
+            background: #007AFF;
+            color: white;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 122, 255, 0.1);
+            border-radius: 12px;
+            border: 2px solid rgba(0, 122, 255, 0.3);
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #007AFF;
+            margin-bottom: 8px;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .scene-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .scene-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 4px solid #007AFF;
+        }
+
+        .scene-letter {
+            font-size: 20px;
+            font-weight: 700;
+            color: #007AFF;
+            margin-bottom: 4px;
+        }
+
+        .scene-description {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 375px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">        
+        <div class="header">
+            <h1 class="title">Exposure Guide</h1>
+            <p class="subtitle">Digital Recreation</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+            <div class="tab active" id="calculatorTabButton">Calculator</div>
+            <div class="tab" id="scenesTabButton">Scene Guide</div>
+        </div>
+
+        <!-- Calculator Tab -->
+        <div id="calculatorTab" class="tab-content active">
+            <!-- Step 1: Scene & ISO Selection -->
+            <div class="section">
+                <h2 class="section-title">Step 1: Lighting & Film</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">Scene</label>
+                    <select id="sceneSelect">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                        <option value="H">H</option>
+                        <option value="I">I</option>
+                        <option value="J">J</option>
+                        <option value="K">K</option>
+                        <option value="L">L</option>
+                        <option value="M" selected>M</option>
+                        <option value="N">N</option>
+                        <option value="O">O</option>
+                        <option value="P">P</option>
+                        <option value="Q">Q</option>
+                        <option value="R">R</option>
+                        <option value="S">S</option>
+                        <option value="T">T</option>
+                        <option value="U">U</option>
+                        <option value="V">V</option>
+                        <option value="W">W</option>
+                        <option value="X">X</option>
+                        <option value="Y">Y</option>
+                        <option value="Z">Z</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">ISO/Film Speed</label>
+                    <select id="isoSelect">
+                        <option value="0">0.1</option>
+                        <option value="1">0.2</option>
+                        <option value="2">0.35</option>
+                        <option value="3">0.7</option>
+                        <option value="4">1.5</option>
+                        <option value="5">3</option>
+                        <option value="6">6</option>
+                        <option value="7">12</option>
+                        <option value="8">25</option>
+                        <option value="9">50</option>
+                        <option value="10">100/125</option>
+                        <option value="11">200/160</option>
+                        <option value="12" selected>400</option>
+                        <option value="13">800/1000</option>
+                        <option value="14">1600</option>
+                        <option value="15">3200</option>
+                        <option value="16">6400</option>
+                        <option value="17">12800</option>
+                        <option value="18">25600</option>
+                        <option value="19">51200</option>
+                        <option value="20">102400</option>
+                        <option value="21">204800</option>
+                        <option value="22">409600</option>
+                        <option value="23">819200</option>
+                        <option value="24">1.6 mil</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 1.5: Exposure Compensation -->
+            <div class="section">
+                <h2 class="section-title">Step 1.5: Exposure Compensation</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">Exposure Adjustment (stops)</label>
+                    <select id="compensationSelect">
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0" selected>0</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 2: Exposure Calculation -->
+            <div class="section">
+                <h2 class="section-title">Step 2: Exposure Calculation</h2>
+                
+                <div class="toggle-container">
+                    <div class="toggle-option active" id="shutterToggle">
+                        Set Shutter → Get Aperture
+                    </div>
+                    <div class="toggle-option" id="apertureToggle">
+                        Set Aperture → Get Shutter
+                    </div>
+                </div>
+
+                <!-- Shutter Speed Input Mode -->
+                <div id="shutterInputMode">
+                    <div class="input-group">
+                        <label class="input-label">Shutter Speed</label>
+                        <select id="shutterSelect">
+                            <option value="0">27 hr</option>
+                            <option value="1">12 hr</option>
+                            <option value="2">6 hr</option>
+                            <option value="3">3 hr</option>
+                            <option value="4">1.5 hr</option>
+                            <option value="5">45 min</option>
+                            <option value="6">24 min</option>
+                            <option value="7">12 min</option>
+                            <option value="8">6 min</option>
+                            <option value="9">3 min</option>
+                            <option value="10">1 min</option>
+                            <option value="11">30 sec</option>
+                            <option value="12">16 sec</option>
+                            <option value="13">6 sec</option>
+                            <option value="14">3 sec</option>
+                            <option value="15">B/1 sec</option>
+                            <option value="16">1/2</option>
+                            <option value="17">1/4</option>
+                            <option value="18">1/8</option>
+                            <option value="19">1/15</option>
+                            <option value="20">1/30</option>
+                            <option value="21" selected>1/60</option>
+                            <option value="22">1/125</option>
+                            <option value="23">1/250</option>
+                            <option value="24">1/500</option>
+                            <option value="25">1/1000</option>
+                            <option value="26">1/2000</option>
+                            <option value="27">1/4000</option>
+                            <option value="28">1/8000</option>
+                            <option value="29">1/16000</option>
+                            <option value="30">1/32000</option>
+                            <option value="31">1/64000</option>
+                            <option value="32">1/128000</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Aperture Input Mode -->
+                <div id="apertureInputMode" class="hidden">
+                    <div class="input-group">
+                        <label class="input-label">Aperture (f-stop)</label>
+                        <select id="apertureSelect">
+                            <option value="0" selected>f/1.0</option>
+                            <option value="1">f/1.4</option>
+                            <option value="2">f/2</option>
+                            <option value="3">f/2.8</option>
+                            <option value="4">f/4</option>
+                            <option value="5">f/5.6</option>
+                            <option value="6">f/8</option>
+                            <option value="7">f/11</option>
+                            <option value="8">f/16</option>
+                            <option value="9">f/22</option>
+                            <option value="10">f/32</option>
+                            <option value="11">f/45</option>
+                            <option value="12">f/64</option>
+                            <option value="13">f/90</option>
+                            <option value="14">f/128</option>
+                            <option value="15">f/179</option>
+                            <option value="16">f/256</option>
+                            <option value="17">f/358</option>
+                            <option value="18">f/512</option>
+                            <option value="19">f/717</option>
+                            <option value="20">f/1024</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="button" onclick="calculate()">Calculate Exposure</button>
+
+                <div id="result" class="result hidden">
+                    <div class="result-value" id="resultValue">f/1.0</div>
+                    <div class="result-label" id="resultLabel">Recommended Aperture</div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="themeToggle" onclick="toggleTheme()" style="background: none; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50px; padding: 12px 20px; color: inherit; font-size: 18px; cursor: pointer; transition: all 0.3s ease;">
+                        🌙
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene Guide Tab -->
+        <div id="scenesTab" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Lighting Conditions Guide</h2>
+                <div class="scene-grid">
+                    <div class="scene-item">
+                        <div class="scene-letter">A</div>
+                        <div class="scene-description"><strong>Aerial photography:</strong> above 4000 feet<br><strong>Sailboats:</strong> with white sails<br><strong>Seascapes:</strong> in sun<br><strong>Solar eclipse:</strong> Bailey's Beads<br><strong>White subjects in sunlight:</strong> waterfalls, white animals, snow</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">B</div>
+                        <div class="scene-description"><strong>Aerial photography:</strong> below 2000 feet<br><strong>Average subject:</strong> in sunlight<br><strong>BDE (basic daylight exposure):</strong><br><strong>Infrared (high speed B&W):</strong> Rate at ISO 50 film speed with filters (#25 red, #15 orange, #29, #70 deep red, #89B). Use ULC letters as guide. Focus midway between standard and IR mark on lens.<br><strong>Sailboats:</strong> with colored sails<br><strong>Solar eclipse:</strong> diamond ring, total phase, no filter<br><strong>Sunny 16 rule:</strong><br><strong>Sun:</strong> with ND 4.0–6.0 filter over objective lens (<strong>CAUTION</strong>: never view directly through ND filters, use only viewing filters)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">C</div>
+                        <div class="scene-description"><strong>Cloudy bright:</strong> with slight shadow<br><strong>Full moon:</strong> with surface detail<br><strong>Rainbows:</strong> against sky or clouds (also bracket +1)<br><strong>Reflections:</strong> in water (also bracket +1)<br><strong>Solar eclipse:</strong> partial phase with ND 5.0 filter<br><strong>Venus:</strong></div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">D</div>
+                        <div class="scene-description"><strong>Cloudy:</strong> bright with no shadows<br><strong>Gibbous phase moon:</strong> between half and full<br><strong>Jupiter:</strong><br><strong>Lunar eclipse:</strong> deep penumbra, up to 1st contact and after 4th contact<br><strong>Solar eclipse:</strong> total phase, prominences, no filter</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">E</div>
+                        <div class="scene-description"><strong>Building interior:</strong> light walls illuminated by indirect sunlight<br><strong>Full moon:</strong> near horizon (appearing huge)<br><strong>Half moon:</strong> first or last quarter<br><strong>Landscape near sunset:</strong> visual texture with full moon on horizon<br><strong>Open shade:</strong> in shadow of buildings<br><strong>Overcast:</strong> dull, no shadows<br><strong>Portrait:</strong> backlit, detail in shadows (including reflector fill)<br><strong>Quarter moon:</strong> with surface texture<br><strong>Solar eclipse:</strong> total phase, prominences<br><strong>Stained glass windows:</strong> inside (outside = B)<br><strong>Sunset:</strong> last 5 minutes</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">F</div>
+                        <div class="scene-description"><strong>Arc welding:</strong> visual texture in clothing/head area<br><strong>Crescent moon:</strong> wide (5–6 day old)<br><strong>Mars:</strong><br><strong>Twilight at sunset:</strong> landscape with visual texture<br><strong>Underwater:</strong> 2–5 ft (outside = B). Bracket +1, +2 when bottom is dark</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">G</div>
+                        <div class="scene-description"><strong>City skyline:</strong> just after sunset<br><strong>Crescent moon:</strong> thin (also bracket +1)<br><strong>Dawn/dusk:</strong> valley/ground mist<br><strong>Deep shade:</strong> under tree<br><strong>Moon:</strong> near horizon with partial cloud cover, showing cloud texture<br><strong>Theater stage:</strong> bright white lights</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">H</div>
+                        <div class="scene-description"><strong>Circus acts:</strong> with spotlights<br><strong>City skylines:</strong> with buildings, 10 minutes after sunset<br><strong>Fires with flame detail only:</strong> at night<br><strong>France:</strong> illuminated Arc of Triumph, Champs-Elysees<br><strong>Ice shows:</strong> bright white lights<br><strong>Reflections:</strong> in wet streets at night<br><strong>Neon signs:</strong><br><strong>Saturn:</strong> (also bracket –1)<br><strong>Solar eclipse:</strong> total phase, average, no filter<br><strong>Solar eclipse:</strong> total phase, inner corona, no filter<br><strong>Storm light:</strong> late afternoon with lead-gray sky<br><strong>Sunset:</strong> with illuminated clouds (no sun)<br><strong>Theater stage:</strong> colored lights</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">I</div>
+                        <div class="scene-description"><strong>Campfire:</strong> faces at 6–8 ft (shadow detail + texture)<br><strong>Christmas tree:</strong> inside bright room<br><strong>Desk illumination:</strong> area detail from 75–100 watt bulbs<br><strong>Eiffel Tower:</strong> (France) illuminated at night<br><strong>Fires:</strong> with area detail at night<br><strong>Fireworks:</strong> ground displays at night<br><strong>Fluorescent lights:</strong> bright<br><strong>Portraits:</strong> bright store window lights<br><strong>Sunset:</strong> no area detail, 15–20 min after sundown<br><strong>Underwater:</strong> 10–12 ft (outside = B). Bracket +1, +2 when bottom is dark</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">J</div>
+                        <div class="scene-description"><strong>Circus acts:</strong> with floodlights<br><strong>Fireworks:</strong> aerial, at night<br><strong>Hospital nurseries:</strong><br><strong>Solar eclipse:</strong> landscapes at darkest during totality<br><strong>Solar eclipse:</strong> shadow bands before/after totality (use 1/250 sec minimum to prevent blur)<br><strong>Solar eclipse:</strong> total phase, outer corona, no filter<br><strong>Solar eclipse:</strong> total phase, with twilight glow on horizon (50mm or wide angle lens recommended)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">K</div>
+                        <div class="scene-description"><strong>Sports events:</strong> floodlights<br><strong>Streets:</strong> bright lighting<br><strong>Television/Computer monitor:</strong> CC 40R with daylight films (also bracket +1)<br><strong>Carnivals:</strong> bright lights<br><strong>Christmas trees:</strong> outside, with lights<br><strong>Fairs/amusement parks/rides:</strong><br><strong>Fountains:</strong> floodlit<br><strong>France:</strong> Loire-Castle sound & light (night)<br><strong>Interiors:</strong> medium-bright buildings<br><strong>Laser light show:</strong> Planetarium<br><strong>Lightning bolts:</strong><br><strong>Monuments:</strong> floodlit<br><strong>Moving lights/streaks:</strong> cars, carnival rides<br><strong>Portrait:</strong> 150 watts at 5 ft<br><strong>School gyms, boat shows, indoor pools:</strong> with bulb-type lighting</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">L</div>
+                        <div class="scene-description"><strong>Airplane instrument panel:</strong> illuminated<br><strong>Interior:</strong> medium lighting<br><strong>France:</strong> illuminated grottos/caves<br><strong>Museums/galleries:</strong><br><strong>Twilight:</strong> 20 minutes after sunset</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">M</div>
+                        <div class="scene-description"><strong>Airplane, bus, train interior:</strong> at night<br><strong>Crescent moon:</strong> dim earthshine (bracket +1, –1)<br><strong>Candle-lit close-up:</strong><br><strong>France:</strong> illuminated Paris sewers/crypts<br><strong>Lunar eclipse:</strong> 2nd and 3rd contacts<br><strong>Solar eclipse:</strong> total, with twilight glow on horizon (50mm or 24mm lens). Bracket +1, +2, +3<br><strong>Street lamp:</strong> area directly under<br><strong>Twilight:</strong> 35 minutes after sunset</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">N</div>
+                        <div class="scene-description"><strong>Buildings:</strong> with floodlights</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">O</div>
+                        <div class="scene-description"><strong>Buildings:</strong> dim floodlights<br><strong>Lunar eclipse:</strong> mid-totality<br><strong>Nightclubs:</strong> dim lighting<br><strong>Slot canyons (Arizona):</strong> Antelope, Novato, Peach (outside = B, 11am–3pm). Bracket +1, –1, –2<br><strong>Twilight:</strong> 15 minutes after sundown, area detail</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">P</div>
+                        <div class="scene-description"><strong>City skylines:</strong> night, with building lights + detail<br><strong>Dams:</strong> large/distant<br><strong>Satellite:</strong> man-made. Use B/1 sec shutter, leave open for duration of pass<br><strong>Towns:</strong> distant dim lights</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">Q</div>
+                        <div class="scene-description"><strong>Boat docks:</strong> dim lights, at night<br><strong>Cathedrals (England):</strong> Canterbury, Ely, Wells interiors (outside = B)<br><strong>Infrared (high speed B&W):</strong> Hot objects at 482–932°F (just below red hot). ISO 50, no filter, aperture per guide</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">R</div>
+                        <div class="scene-description"><strong>Fog:</strong> dim lights, at night<br><strong>Moonlit snow/seascape:</strong> full moon showing texture (moon not visible)<br><strong>Street scene:</strong> at night, appearing like daylight</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">S</div>
+                        <div class="scene-description"><strong>Infrared (high speed B&W):</strong> Radiated only, no visible light. Use 2×750w irons at 45°, 18 inches away. ISO 50 with #25 red filter if stray light present.<br><strong>Moonlit landscape:</strong> visual texture by full moon (moon not visible)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">T</div>
+                        <div class="scene-description"><strong>Aurora:</strong> Northern/Southern lights, light sky<br><strong>Constellations:</strong> (also bracket +1,+2,+3). Use ≤20s for 50mm, 40s for 24mm, 5s for 200mm lens<br><strong>Galaxies/nebulae/clusters:</strong> equatorial mount (also bracket +1,+2,+3)<br><strong>Moonlit dark landscape:</strong> lit by full moon (moon not visible)<br><strong>Moonlit landscape:</strong> lit by half moon (moon not visible)<br><strong>Star trails:</strong> 6 min only (also bracket +1,+2)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">U</div>
+                        <div class="scene-description"><strong>Moonlit landscape:</strong> texture by quarter moon (moon not visible)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">V</div>
+                        <div class="scene-description"><strong>Starfields:</strong> dark sky, stars fainter than eye<br><strong>Star trails:</strong> 24 min only (bracket +1,+2)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">W</div>
+                        <div class="scene-description"><strong>Aurora:</strong> bright sky (also bracket +1,+2,+3,+4)<br><strong>Star trails:</strong> 45 min only (bracket +1,+2)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">X</div>
+                        <div class="scene-description"><strong>Star trails:</strong> 1.5 hours only (bracket +1,+2)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">Y</div>
+                        <div class="scene-description"><strong>Meteors:</strong> (also bracket +1, –1)<br><strong>Star trails:</strong> 3 hours only (bracket +1,+2)</div>
+                    </div>
+                    <div class="scene-item">
+                        <div class="scene-letter">Z</div>
+                        <div class="scene-description"><strong>Star trails:</strong> 6 hours only (bracket +1,+2)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data arrays in exact order from the slide rule
+        const scenes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+        
+        const isoValues = [0.1, 0.2, 0.35, 0.7, 1.5, 3, 6, 12, 25, 50, '100/125', '200/160', 400, '800/1000', 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800, 409600, 819200, '1.6 mil'];
+        
+        const shutterSpeeds = ['27 hr', '12 hr', '6 hr', '3 hr', '1.5 hr', '45 min', '24 min', '12 min', '6 min', '3 min', '1 min', '30 sec', '16 sec', '6 sec', '3 sec', 'B/1 sec', '1/2', '1/4', '1/8', '1/15', '1/30', '1/60', '1/125', '1/250', '1/500', '1/1000', '1/2000', '1/4000', '1/8000', '1/16000', '1/32000', '1/64000', '1/128000'];
+        
+        const fStops = [1.0, 1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22, 32, 45, 64, 90, 128, 179, 256, 358, 512, 717, 1024];
+
+        let currentMode = 'shutter';
+
+        // Calibration point: Scene M (index 12) + ISO 400 (index 12) + 1/60 sec (index 21) = f/1.0 (index 0)
+        const CALIBRATION_SCENE = 12;
+        const CALIBRATION_ISO = 12;
+        const CALIBRATION_SHUTTER = 21;
+        const CALIBRATION_APERTURE = 0;
+
+        // Set up event listeners after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            }
+            
+            // Load saved theme preference
+            try {
+                const savedTheme = localStorage.getItem('exposureGuideTheme');
+                if (savedTheme === 'light') {
+                    toggleTheme();
+                }
+            } catch (e) {
+                // localStorage not available
+            }
+            
+            // Initialize with calibration point
+            calculate();
+        });
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeToggle.textContent = '☀️';
+                try {
+                    localStorage.setItem('exposureGuideTheme', 'light');
+                } catch (e) {
+                    // localStorage might not be available
+                }
+            } else {
+                themeToggle.textContent = '🌙';
+                try {
+                    localStorage.setItem('exposureGuideTheme', 'dark');
+                } catch (e) {
+                    // localStorage might not be available
+                }
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show/hide tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'calculator') {
+                const calcBtn = document.getElementById('calculatorTabButton');
+                const calcTab = document.getElementById('calculatorTab');
+                if (calcBtn) calcBtn.classList.add('active');
+                if (calcTab) calcTab.classList.add('active');
+            } else if (tabName === 'scenes') {
+                const scenesBtn = document.getElementById('scenesTabButton');
+                const scenesTab = document.getElementById('scenesTab');
+                if (scenesBtn) scenesBtn.classList.add('active');
+                if (scenesTab) scenesTab.classList.add('active');
+            }
+        }
+
+        function setCalculationMode(mode) {
+            currentMode = mode;
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const shutterMode = document.getElementById('shutterInputMode');
+            const apertureMode = document.getElementById('apertureInputMode');
+            const shutterToggle = document.getElementById('shutterToggle');
+            const apertureToggle = document.getElementById('apertureToggle');
+            const result = document.getElementById('result');
+            
+            if (mode === 'shutter') {
+                if (shutterToggle) shutterToggle.classList.add('active');
+                if (shutterMode) shutterMode.classList.remove('hidden');
+                if (apertureMode) apertureMode.classList.add('hidden');
+            } else {
+                if (apertureToggle) apertureToggle.classList.add('active');
+                if (shutterMode) shutterMode.classList.add('hidden');
+                if (apertureMode) apertureMode.classList.remove('hidden');
+            }
+            
+            // Clear previous results
+            if (result) result.classList.add('hidden');
+        }
+
+        function calculate() {
+            try {
+                const sceneIndex = scenes.indexOf(document.getElementById('sceneSelect').value);
+                const isoIndex = parseInt(document.getElementById('isoSelect').value);
+                const compensation = parseInt(document.getElementById('compensationSelect').value);
+                
+                if (currentMode === 'shutter') {
+                    // Calculate aperture from shutter speed
+                    const shutterIndex = parseInt(document.getElementById('shutterSelect').value);
+                    const apertureIndex = calculateAperture(sceneIndex, isoIndex, shutterIndex, compensation);
+                    
+                    if (apertureIndex >= 0 && apertureIndex < fStops.length) {
+                        showResult(`f/${fStops[apertureIndex]}`, 'Recommended Aperture');
+                    } else {
+                        showResult(`Out of Range`, 'Aperture');
+                    }
+                } else {
+                    // Calculate shutter speed from aperture
+                    const apertureIndex = parseInt(document.getElementById('apertureSelect').value);
+                    const shutterIndex = calculateShutter(sceneIndex, isoIndex, apertureIndex, compensation);
+                    
+                    if (shutterIndex >= 0 && shutterIndex < shutterSpeeds.length) {
+                        showResult(shutterSpeeds[shutterIndex], 'Recommended Shutter Speed');
+                    } else {
+                        showResult(`Out of Range`, 'Shutter Speed');
+                    }
+                }
+            } catch (error) {
+                showResult('Error', 'Calculation failed');
+            }
+        }
+
+        function calculateAperture(sceneIndex, isoIndex, shutterIndex, compensation) {
+            // Apply exposure compensation: positive compensation = more light needed = wider aperture (lower index)
+            return CALIBRATION_APERTURE - (sceneIndex - CALIBRATION_SCENE) + (isoIndex - CALIBRATION_ISO) - (shutterIndex - CALIBRATION_SHUTTER) - compensation;
+        }
+
+        function calculateShutter(sceneIndex, isoIndex, apertureIndex, compensation) {
+            // Apply exposure compensation: positive compensation = more light needed = slower shutter (lower index)
+            return CALIBRATION_SHUTTER - (sceneIndex - CALIBRATION_SCENE) + (isoIndex - CALIBRATION_ISO) - (apertureIndex - CALIBRATION_APERTURE) - compensation;
+        }
+
+        function showResult(value, label) {
+            document.getElementById('resultValue').textContent = value;
+            document.getElementById('resultLabel').textContent = label;
+            document.getElementById('result').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
