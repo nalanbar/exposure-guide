@@ -288,8 +288,8 @@
 
         <!-- Tab Navigation -->
         <div class="tab-container">
-            <div class="tab active" id="calculatorTabButton">Calculator</div>
-            <div class="tab" id="scenesTabButton">Scene Guide</div>
+            <div class="tab active" id="calculatorTabButton" onclick="switchTab('calculator')" ontouchend="switchTab('calculator')">Calculator</div>
+            <div class="tab" id="scenesTabButton" onclick="switchTab('scenes')" ontouchend="switchTab('scenes')">Scene Guide</div>
         </div>
 
         <!-- Calculator Tab -->
@@ -385,10 +385,10 @@
                 <h2 class="section-title">Step 2: Exposure Calculation</h2>
                 
                 <div class="toggle-container">
-                    <div class="toggle-option active" id="shutterToggle">
+                    <div class="toggle-option active" id="shutterToggle" onclick="setCalculationMode('shutter')" ontouchend="setCalculationMode('shutter')">
                         Set Shutter → Get Aperture
                     </div>
-                    <div class="toggle-option" id="apertureToggle">
+                    <div class="toggle-option" id="apertureToggle" onclick="setCalculationMode('aperture')" ontouchend="setCalculationMode('aperture')">
                         Set Aperture → Get Shutter
                     </div>
                 </div>
@@ -474,7 +474,7 @@
 
                 <!-- Theme Toggle -->
                 <div style="text-align: center; margin-top: 20px;">
-                    <button id="themeToggle" onclick="toggleTheme()" style="background: none; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50px; padding: 12px 20px; color: inherit; font-size: 18px; cursor: pointer; transition: all 0.3s ease;">
+                    <button id="themeToggle" onclick="toggleTheme()" ontouchend="toggleTheme()" style="background: none; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50px; padding: 12px 20px; color: inherit; font-size: 18px; cursor: pointer; transition: all 0.3s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
                         🌙
                     </button>
                 </div>
@@ -615,11 +615,11 @@
 
         // Set up event listeners after DOM loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Register service worker for PWA
+            // Register service worker for PWA (only if sw.js exists)
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
-                    .then(registration => console.log('SW registered'))
-                    .catch(error => console.log('SW registration failed'));
+                    .then(registration => console.log('SW registered successfully'))
+                    .catch(error => console.log('SW registration failed - offline features unavailable'));
             }
             
             // Load saved theme preference
