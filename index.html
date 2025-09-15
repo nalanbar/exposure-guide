@@ -19,20 +19,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
     <link rel="apple-touch-icon" href="icon-192.png">
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--system-background);
-            color: var(--system-label);
-            min-height: 100vh;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            transition: all 0.3s ease;
         }
 
         /* iOS System Colors */
@@ -42,8 +34,8 @@
             --system-secondary-grouped-background: #1c1c1e;
             --system-tertiary-grouped-background: #2c2c2e;
             --system-label: #ffffff;
-            --system-secondary-label: #ebebf5;
-            --system-tertiary-label: #ebebf5;
+            --system-secondary-label: #ebebf599;
+            --system-tertiary-label: #ebebf54d;
             --system-blue: #007aff;
             --system-gray: #8e8e93;
             --system-gray2: #636366;
@@ -51,27 +43,6 @@
             --system-gray4: #3a3a3c;
             --system-gray5: #2c2c2e;
             --system-gray6: #1c1c1e;
-            --system-fill: rgba(120, 120, 128, 0.2);
-            --system-secondary-fill: rgba(120, 120, 128, 0.16);
-            --system-tertiary-fill: rgba(118, 118, 128, 0.12);
-            --system-quaternary-fill: rgba(116, 116, 128, 0.08);
-        }
-
-        body.light-mode {
-            --system-background: #ffffff;
-            --system-grouped-background: #f2f2f7;
-            --system-secondary-grouped-background: #ffffff;
-            --system-tertiary-grouped-background: #f2f2f7;
-            --system-label: #000000;
-            --system-secondary-label: #3c3c43;
-            --system-tertiary-label: #3c3c43;
-            --system-blue: #007aff;
-            --system-gray: #8e8e93;
-            --system-gray2: #aeaeb2;
-            --system-gray3: #c7c7cc;
-            --system-gray4: #d1d1d6;
-            --system-gray5: #e5e5ea;
-            --system-gray6: #f2f2f7;
             --system-fill: rgba(120, 120, 128, 0.2);
             --system-secondary-fill: rgba(120, 120, 128, 0.16);
             --system-tertiary-fill: rgba(118, 118, 128, 0.12);
@@ -86,8 +57,8 @@
                 --system-secondary-grouped-background: #ffffff;
                 --system-tertiary-grouped-background: #f2f2f7;
                 --system-label: #000000;
-                --system-secondary-label: #3c3c43;
-                --system-tertiary-label: #3c3c43;
+                --system-secondary-label: #3c3c4399;
+                --system-tertiary-label: #3c3c434d;
                 --system-blue: #007aff;
                 --system-gray: #8e8e93;
                 --system-gray2: #aeaeb2;
@@ -102,34 +73,35 @@
             }
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-            color: #ffffff;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Light mode override */
+        body.light-mode {
+            --system-background: #ffffff;
+            --system-grouped-background: #f2f2f7;
+            --system-secondary-grouped-background: #ffffff;
+            --system-tertiary-grouped-background: #f2f2f7;
+            --system-label: #000000;
+            --system-secondary-label: #3c3c4399;
+            --system-tertiary-label: #3c3c434d;
+            --system-blue: #007aff;
+            --system-gray: #8e8e93;
+            --system-gray2: #aeaeb2;
+            --system-gray3: #c7c7cc;
+            --system-gray4: #d1d1d6;
+            --system-gray5: #e5e5ea;
+            --system-gray6: #f2f2f7;
+            --system-fill: rgba(120, 120, 128, 0.2);
+            --system-secondary-fill: rgba(120, 120, 128, 0.16);
+            --system-tertiary-fill: rgba(118, 118, 128, 0.12);
+            --system-quaternary-fill: rgba(116, 116, 128, 0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--system-grouped-background);
+            color: var(--system-label);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             transition: all 0.3s ease;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        body.light-mode .theme-toggle {
-            border-color: rgba(0, 0, 0, 0.2);
-            background: rgba(255, 255, 255, 0.8);
-            color: #333333;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
         }
 
         .container {
@@ -147,40 +119,44 @@
         }
 
         .title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #f5f5f5;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--system-label);
             margin-bottom: 8px;
         }
 
         .subtitle {
-            font-size: 14px;
-            color: #888;
+            font-size: 16px;
+            color: var(--system-secondary-label);
+            font-weight: 500;
         }
 
         .tab-container {
             display: flex;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: var(--system-gray6);
             border-radius: 16px;
             padding: 4px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .tab {
             flex: 1;
-            padding: 14px;
+            padding: 12px 16px;
             text-align: center;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             font-size: 16px;
             font-weight: 600;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            color: var(--system-secondary-label);
         }
 
         .tab.active {
-            background: linear-gradient(135deg, #007AFF 0%, #0056D6 100%);
+            background-color: var(--system-blue);
             color: white;
-            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .tab-content {
@@ -192,49 +168,53 @@
         }
 
         .section {
-            background: rgba(255, 255, 255, 0.1);
+            background-color: var(--system-secondary-grouped-background);
             border-radius: 16px;
             padding: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 15px;
-            color: #f5f5f5;
+            margin-bottom: 16px;
+            color: var(--system-label);
         }
 
         .input-group {
             margin-bottom: 20px;
         }
 
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
         .input-label {
             display: block;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 600;
             margin-bottom: 8px;
-            color: #ccc;
+            color: var(--system-label);
         }
 
         select, input {
             width: 100%;
             padding: 12px 16px;
             border-radius: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-            color: #ffffff;
+            border: 1px solid var(--system-gray5);
+            background-color: var(--system-gray6);
+            color: var(--system-label);
             font-size: 16px;
             -webkit-appearance: none;
             appearance: none;
+            transition: all 0.2s ease;
         }
 
         select:focus, input:focus {
             outline: none;
-            border-color: #007AFF;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            border-color: var(--system-blue);
+            background-color: var(--system-secondary-grouped-background);
         }
 
         .button {
@@ -242,23 +222,23 @@
             padding: 16px;
             border-radius: 12px;
             border: none;
-            background: linear-gradient(135deg, #007AFF 0%, #0056D6 100%);
+            background-color: var(--system-blue);
             color: white;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 10px;
+            margin-top: 8px;
         }
 
         .button:active {
             transform: scale(0.98);
-            background: linear-gradient(135deg, #0056D6 0%, #003DA3 100%);
+            opacity: 0.8;
         }
 
         .toggle-container {
             display: flex;
-            background: rgba(255, 255, 255, 0.1);
+            background-color: var(--system-gray6);
             border-radius: 12px;
             padding: 4px;
             margin-bottom: 20px;
@@ -266,38 +246,43 @@
 
         .toggle-option {
             flex: 1;
-            padding: 12px;
+            padding: 10px 12px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 14px;
             font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            color: var(--system-secondary-label);
         }
 
         .toggle-option.active {
-            background: #007AFF;
+            background-color: var(--system-blue);
             color: white;
         }
 
         .result {
             text-align: center;
             padding: 20px;
-            background: rgba(0, 122, 255, 0.1);
-            border-radius: 12px;
-            border: 2px solid rgba(0, 122, 255, 0.3);
+            background-color: var(--system-secondary-grouped-background);
+            border-radius: 16px;
+            border: 2px solid var(--system-blue);
+            margin-top: 16px;
         }
 
         .result-value {
-            font-size: 24px;
+            font-size: 32px;
             font-weight: 700;
-            color: #007AFF;
-            margin-bottom: 8px;
+            color: var(--system-blue);
+            margin-bottom: 4px;
         }
 
         .result-label {
-            font-size: 14px;
-            color: #888;
+            font-size: 16px;
+            color: var(--system-secondary-label);
+            font-weight: 500;
         }
 
         .scene-grid {
@@ -307,23 +292,41 @@
         }
 
         .scene-item {
-            background: rgba(255, 255, 255, 0.05);
+            background-color: var(--system-secondary-grouped-background);
             border-radius: 12px;
             padding: 16px;
-            border-left: 4px solid #007AFF;
+            border-left: 4px solid var(--system-blue);
         }
 
         .scene-letter {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            color: #007AFF;
+            color: var(--system-blue);
             margin-bottom: 4px;
         }
 
         .scene-description {
-            font-size: 14px;
-            color: #ccc;
+            font-size: 15px;
+            color: var(--system-secondary-label);
             line-height: 1.4;
+        }
+
+        #themeToggle {
+            background-color: var(--system-gray6);
+            border: 1px solid var(--system-gray4);
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: var(--system-label);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #themeToggle:active {
+            transform: scale(0.95);
+            background-color: var(--system-gray5);
         }
 
         .hidden {
@@ -332,11 +335,11 @@
 
         @media (max-width: 375px) {
             .container {
-                padding: 15px;
+                padding: 16px;
             }
             
             .title {
-                font-size: 22px;
+                font-size: 24px;
             }
         }
     </style>
@@ -535,10 +538,8 @@
                 </div>
 
                 <!-- Theme Toggle -->
-                <div style="text-align: center; margin-top: 20px;">
-                    <button id="themeToggle">
-                        🌙
-                    </button>
+                <div style="text-align: center; margin-top: 24px;">
+                    <button id="themeToggle">🌙</button>
                 </div>
             </div>
         </div>
@@ -734,7 +735,7 @@
                 });
             }
             
-            // Load saved theme preference
+            // Load saved theme preference or system preference
             try {
                 const savedTheme = localStorage.getItem('exposureGuideTheme');
                 if (savedTheme === 'light') {
@@ -747,29 +748,6 @@
             // Initialize with calibration point
             calculate();
         });
-
-        function toggleTheme() {
-            const body = document.body;
-            const themeToggle = document.getElementById('themeToggle');
-            
-            body.classList.toggle('light-mode');
-            
-            if (body.classList.contains('light-mode')) {
-                themeToggle.textContent = '☀️';
-                try {
-                    localStorage.setItem('exposureGuideTheme', 'light');
-                } catch (e) {
-                    // localStorage might not be available
-                }
-            } else {
-                themeToggle.textContent = '🌙';
-                try {
-                    localStorage.setItem('exposureGuideTheme', 'dark');
-                } catch (e) {
-                    // localStorage might not be available
-                }
-            }
-        }
 
         function switchTab(tabName) {
             // Update tab buttons
@@ -869,6 +847,29 @@
             document.getElementById('resultValue').textContent = value;
             document.getElementById('resultLabel').textContent = label;
             document.getElementById('result').classList.remove('hidden');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeToggle.textContent = '☀️';
+                try {
+                    localStorage.setItem('exposureGuideTheme', 'light');
+                } catch (e) {
+                    // localStorage might not be available
+                }
+            } else {
+                themeToggle.textContent = '🌙';
+                try {
+                    localStorage.setItem('exposureGuideTheme', 'dark');
+                } catch (e) {
+                    // localStorage might not be available
+                }
+            }
         }
     </script>
 </body>
