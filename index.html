@@ -86,6 +86,7 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            position: relative;
         }
 
         .title {
@@ -99,6 +100,22 @@
             font-size: 16px;
             color: var(--system-secondary-label);
             font-weight: 500;
+        }
+
+        .memory-indicator {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--system-blue);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .memory-indicator.flash {
+            opacity: 1;
         }
 
         .tab-container {
@@ -347,6 +364,7 @@
 <body>
     <div class="container">        
         <div class="header">
+            <div class="memory-indicator" id="memoryIndicator"></div>
             <h1 class="title">Exposure Guide</h1>
             <p class="subtitle">Digital Recreation</p>
         </div>
@@ -684,14 +702,89 @@
         const CALIBRATION_SHUTTER = 21;
         const CALIBRATION_APERTURE = 0;
 
+        // Cookie management functions
+        function setCookie(name, value, days = 365) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+            
+            // Show memory indicator briefly
+            const indicator = document.getElementById('memoryIndicator');
+            if (indicator) {
+                indicator.classList.add('flash');
+                setTimeout(() => indicator.classList.remove('flash'), 1000);
+            }
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function saveSettings() {
+            const scene = document.getElementById('sceneSelect').value;
+            const iso = document.getElementById('isoSelect').value;
+            const compensation = document.getElementById('compensationSelect').value;
+            const shutter = document.getElementById('shutterSelect').value;
+            const aperture = document.getElementById('apertureSelect').value;
+            const activeTab = document.querySelector('.tab.active').textContent.toLowerCase();
+            
+            setCookie('exposureGuide_scene', scene);
+            setCookie('exposureGuide_iso', iso);
+            setCookie('exposureGuide_compensation', compensation);
+            setCookie('exposureGuide_shutter', shutter);
+            setCookie('exposureGuide_aperture', aperture);
+            setCookie('exposureGuide_mode', currentMode);
+            setCookie('exposureGuide_tab', activeTab);
+        }
+
+        function loadSettings() {
+            // Load saved values or use defaults
+            const savedScene = getCookie('exposureGuide_scene') || 'M';
+            const savedISO = getCookie('exposureGuide_iso') || '12';
+            const savedCompensation = getCookie('exposureGuide_compensation') || '0';
+            const savedShutter = getCookie('exposureGuide_shutter') || '21';
+            const savedAperture = getCookie('exposureGuide_aperture') || '0';
+            const savedMode = getCookie('exposureGuide_mode') || 'shutter';
+            const savedTab = getCookie('exposureGuide_tab') || 'calculator';
+            
+            // Apply saved settings
+            document.getElementById('sceneSelect').value = savedScene;
+            document.getElementById('isoSelect').value = savedISO;
+            document.getElementById('compensationSelect').value = savedCompensation;
+            document.getElementById('shutterSelect').value = savedShutter;
+            document.getElementById('apertureSelect').value = savedAperture;
+            
+            // Set calculation mode
+            setCalculationMode(savedMode);
+            
+            // Switch to saved tab
+            if (savedTab === 'scene guide') {
+                switchTab('scenes');
+            } else {
+                switchTab('calculator');
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
             
+            // Load saved settings first
+            loadSettings();
+            
             // Add event listeners
             setupEventListeners();
+            
+            // Calculate with loaded settings
             calculate();
         });
 
@@ -709,6 +802,13 @@
             if (searchInput) {
                 searchInput.addEventListener('input', filterScenes);
             }
+            
+            // Add change listeners for auto-saving
+            document.getElementById('sceneSelect').addEventListener('change', saveSettings);
+            document.getElementById('isoSelect').addEventListener('change', saveSettings);
+            document.getElementById('compensationSelect').addEventListener('change', saveSettings);
+            document.getElementById('shutterSelect').addEventListener('change', saveSettings);
+            document.getElementById('apertureSelect').addEventListener('change', saveSettings);
         }
 
         function addClickAndTouch(id, callback) {
@@ -723,6 +823,9 @@
         }
 
         function switchTab(tabName) {
+            // Save tab change
+            saveSettings();
+            
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -738,6 +841,9 @@
 
         function setCalculationMode(mode) {
             currentMode = mode;
+            
+            // Save mode change
+            saveSettings();
             
             document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
             
@@ -831,4 +937,3 @@
     </script>
 </body>
 </html>
-                        
