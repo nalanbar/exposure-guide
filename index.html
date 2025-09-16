@@ -43,10 +43,6 @@
             --system-gray4: #3a3a3c;
             --system-gray5: #2c2c2e;
             --system-gray6: #1c1c1e;
-            --system-fill: rgba(120, 120, 128, 0.2);
-            --system-secondary-fill: rgba(120, 120, 128, 0.16);
-            --system-tertiary-fill: rgba(118, 118, 128, 0.12);
-            --system-quaternary-fill: rgba(116, 116, 128, 0.08);
         }
 
         /* Auto-detect system theme preference */
@@ -66,33 +62,7 @@
                 --system-gray4: #d1d1d6;
                 --system-gray5: #e5e5ea;
                 --system-gray6: #f2f2f7;
-                --system-fill: rgba(120, 120, 128, 0.2);
-                --system-secondary-fill: rgba(120, 120, 128, 0.16);
-                --system-tertiary-fill: rgba(118, 118, 128, 0.12);
-                --system-quaternary-fill: rgba(116, 116, 128, 0.08);
             }
-        }
-
-        /* Light mode override */
-        body.light-mode {
-            --system-background: #ffffff;
-            --system-grouped-background: #f2f2f7;
-            --system-secondary-grouped-background: #ffffff;
-            --system-tertiary-grouped-background: #f2f2f7;
-            --system-label: #000000;
-            --system-secondary-label: #3c3c4399;
-            --system-tertiary-label: #3c3c434d;
-            --system-blue: #007aff;
-            --system-gray: #8e8e93;
-            --system-gray2: #aeaeb2;
-            --system-gray3: #c7c7cc;
-            --system-gray4: #d1d1d6;
-            --system-gray5: #e5e5ea;
-            --system-gray6: #f2f2f7;
-            --system-fill: rgba(120, 120, 128, 0.2);
-            --system-secondary-fill: rgba(120, 120, 128, 0.16);
-            --system-tertiary-fill: rgba(118, 118, 128, 0.12);
-            --system-quaternary-fill: rgba(116, 116, 128, 0.08);
         }
 
         body {
@@ -285,6 +255,43 @@
             font-weight: 500;
         }
 
+        /* Search styling */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border-radius: 12px;
+            border: 1px solid var(--system-gray5);
+            background-color: var(--system-gray6);
+            color: var(--system-label);
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--system-blue);
+            background-color: var(--system-secondary-grouped-background);
+        }
+
+        .search-input::placeholder {
+            color: var(--system-tertiary-label);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--system-gray);
+            pointer-events: none;
+        }
+
         .scene-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -296,6 +303,10 @@
             border-radius: 12px;
             padding: 16px;
             border-left: 4px solid var(--system-blue);
+        }
+
+        .scene-item.hidden {
+            display: none;
         }
 
         .scene-letter {
@@ -311,9 +322,11 @@
             line-height: 1.4;
         }
 
-        #themeToggle:active {
-            transform: scale(0.95);
-            background-color: var(--system-gray5);
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--system-secondary-label);
+            font-size: 16px;
         }
 
         .hidden {
@@ -530,6 +543,19 @@
         <div id="scenesTab" class="tab-content">
             <div class="section">
                 <h2 class="section-title">Lighting Conditions Guide</h2>
+                
+                <!-- Search Filter -->
+                <div class="search-container">
+                    <div class="search-icon">🔍</div>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="sceneSearch" 
+                        placeholder="Search lighting conditions..."
+                        autocomplete="off"
+                    >
+                </div>
+                
                 <div class="scene-grid">
                     <div class="scene-item">
                         <div class="scene-letter">A</div>
@@ -636,131 +662,100 @@
                         <div class="scene-description"><strong>Star trails:</strong> 6 hours only (bracket +1,+2)</div>
                     </div>
                 </div>
+                
+                <!-- No Results Message -->
+                <div id="noResults" class="no-results hidden">
+                    No lighting conditions match your search.
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Data arrays in exact order from the slide rule
+        // Data arrays
         const scenes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-        
         const isoValues = [0.1, 0.2, 0.35, 0.7, 1.5, 3, 6, 12, 25, 50, '100/125', '200/160', 400, '800/1000', 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800, 409600, 819200, '1.6 mil'];
-        
         const shutterSpeeds = ['27 hr', '12 hr', '6 hr', '3 hr', '1.5 hr', '45 min', '24 min', '12 min', '6 min', '3 min', '1 min', '30 sec', '16 sec', '6 sec', '3 sec', 'B/1 sec', '1/2', '1/4', '1/8', '1/15', '1/30', '1/60', '1/125', '1/250', '1/500', '1/1000', '1/2000', '1/4000', '1/8000', '1/16000', '1/32000', '1/64000', '1/128000'];
-        
         const fStops = [1.0, 1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22, 32, 45, 64, 90, 128, 179, 256, 358, 512, 717, 1024];
 
         let currentMode = 'shutter';
-
-        // Calibration point: Scene M (index 12) + ISO 400 (index 12) + 1/60 sec (index 21) = f/1.0 (index 0)
         const CALIBRATION_SCENE = 12;
         const CALIBRATION_ISO = 12;
         const CALIBRATION_SHUTTER = 21;
         const CALIBRATION_APERTURE = 0;
 
-        // Set up event listeners after DOM loads
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Register service worker for PWA (only if sw.js exists)
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => console.log('SW registered successfully'))
-                    .catch(error => console.log('SW registration failed - offline features unavailable'));
+                navigator.serviceWorker.register('sw.js').catch(() => {});
             }
             
-            // Add touch event listeners for iOS compatibility
-            const calculatorTab = document.getElementById('calculatorTabButton');
-            const scenesTab = document.getElementById('scenesTabButton');
-            const shutterToggle = document.getElementById('shutterToggle');
-            const apertureToggle = document.getElementById('apertureToggle');
-            
-            // Tab switching with touch events
-            if (calculatorTab) {
-                calculatorTab.addEventListener('click', () => switchTab('calculator'));
-                calculatorTab.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    switchTab('calculator');
-                });
-            }
-            
-            if (scenesTab) {
-                scenesTab.addEventListener('click', () => switchTab('scenes'));
-                scenesTab.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    switchTab('scenes');
-                });
-            }
-            
-            // Calculation mode switching with touch events
-            if (shutterToggle) {
-                shutterToggle.addEventListener('click', () => setCalculationMode('shutter'));
-                shutterToggle.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    setCalculationMode('shutter');
-                });
-            }
-            
-            if (apertureToggle) {
-                apertureToggle.addEventListener('click', () => setCalculationMode('aperture'));
-                apertureToggle.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    setCalculationMode('aperture');
-                });
-            }
-            
-            // Initialize with calibration point
+            // Add event listeners
+            setupEventListeners();
             calculate();
         });
 
+        function setupEventListeners() {
+            // Tab switching
+            addClickAndTouch('calculatorTabButton', () => switchTab('calculator'));
+            addClickAndTouch('scenesTabButton', () => switchTab('scenes'));
+            
+            // Mode switching
+            addClickAndTouch('shutterToggle', () => setCalculationMode('shutter'));
+            addClickAndTouch('apertureToggle', () => setCalculationMode('aperture'));
+            
+            // Search
+            const searchInput = document.getElementById('sceneSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterScenes);
+            }
+        }
+
+        function addClickAndTouch(id, callback) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', callback);
+                element.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    callback();
+                });
+            }
+        }
+
         function switchTab(tabName) {
             // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show/hide tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             if (tabName === 'calculator') {
-                const calcBtn = document.getElementById('calculatorTabButton');
-                const calcTab = document.getElementById('calculatorTab');
-                if (calcBtn) calcBtn.classList.add('active');
-                if (calcTab) calcTab.classList.add('active');
+                document.getElementById('calculatorTabButton')?.classList.add('active');
+                document.getElementById('calculatorTab')?.classList.add('active');
             } else if (tabName === 'scenes') {
-                const scenesBtn = document.getElementById('scenesTabButton');
-                const scenesTab = document.getElementById('scenesTab');
-                if (scenesBtn) scenesBtn.classList.add('active');
-                if (scenesTab) scenesTab.classList.add('active');
+                document.getElementById('scenesTabButton')?.classList.add('active');
+                document.getElementById('scenesTab')?.classList.add('active');
             }
         }
 
         function setCalculationMode(mode) {
             currentMode = mode;
             
-            // Update toggle buttons
-            document.querySelectorAll('.toggle-option').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
             
             const shutterMode = document.getElementById('shutterInputMode');
             const apertureMode = document.getElementById('apertureInputMode');
-            const shutterToggle = document.getElementById('shutterToggle');
-            const apertureToggle = document.getElementById('apertureToggle');
             const result = document.getElementById('result');
             
             if (mode === 'shutter') {
-                if (shutterToggle) shutterToggle.classList.add('active');
-                if (shutterMode) shutterMode.classList.remove('hidden');
-                if (apertureMode) apertureMode.classList.add('hidden');
+                document.getElementById('shutterToggle')?.classList.add('active');
+                shutterMode?.classList.remove('hidden');
+                apertureMode?.classList.add('hidden');
             } else {
-                if (apertureToggle) apertureToggle.classList.add('active');
-                if (shutterMode) shutterMode.classList.add('hidden');
-                if (apertureMode) apertureMode.classList.remove('hidden');
+                document.getElementById('apertureToggle')?.classList.add('active');
+                shutterMode?.classList.add('hidden');
+                apertureMode?.classList.remove('hidden');
             }
             
-            // Clear previous results
-            if (result) result.classList.add('hidden');
+            result?.classList.add('hidden');
         }
 
         function calculate() {
@@ -770,24 +765,22 @@
                 const compensation = parseInt(document.getElementById('compensationSelect').value);
                 
                 if (currentMode === 'shutter') {
-                    // Calculate aperture from shutter speed
                     const shutterIndex = parseInt(document.getElementById('shutterSelect').value);
                     const apertureIndex = calculateAperture(sceneIndex, isoIndex, shutterIndex, compensation);
                     
                     if (apertureIndex >= 0 && apertureIndex < fStops.length) {
                         showResult(`f/${fStops[apertureIndex]}`, 'Recommended Aperture');
                     } else {
-                        showResult(`Out of Range`, 'Aperture');
+                        showResult('Out of Range', 'Aperture');
                     }
                 } else {
-                    // Calculate shutter speed from aperture
                     const apertureIndex = parseInt(document.getElementById('apertureSelect').value);
                     const shutterIndex = calculateShutter(sceneIndex, isoIndex, apertureIndex, compensation);
                     
                     if (shutterIndex >= 0 && shutterIndex < shutterSpeeds.length) {
                         showResult(shutterSpeeds[shutterIndex], 'Recommended Shutter Speed');
                     } else {
-                        showResult(`Out of Range`, 'Shutter Speed');
+                        showResult('Out of Range', 'Shutter Speed');
                     }
                 }
             } catch (error) {
@@ -796,12 +789,10 @@
         }
 
         function calculateAperture(sceneIndex, isoIndex, shutterIndex, compensation) {
-            // Apply exposure compensation: positive compensation = more light needed = wider aperture (lower index)
             return CALIBRATION_APERTURE - (sceneIndex - CALIBRATION_SCENE) + (isoIndex - CALIBRATION_ISO) - (shutterIndex - CALIBRATION_SHUTTER) - compensation;
         }
 
         function calculateShutter(sceneIndex, isoIndex, apertureIndex, compensation) {
-            // Apply exposure compensation: positive compensation = more light needed = slower shutter (lower index)
             return CALIBRATION_SHUTTER - (sceneIndex - CALIBRATION_SCENE) + (isoIndex - CALIBRATION_ISO) - (apertureIndex - CALIBRATION_APERTURE) - compensation;
         }
 
@@ -810,6 +801,34 @@
             document.getElementById('resultLabel').textContent = label;
             document.getElementById('result').classList.remove('hidden');
         }
+
+        function filterScenes() {
+            const searchTerm = document.getElementById('sceneSearch').value.toLowerCase().trim();
+            const sceneItems = document.querySelectorAll('.scene-item');
+            const noResults = document.getElementById('noResults');
+            let visibleCount = 0;
+            
+            sceneItems.forEach(item => {
+                const description = item.querySelector('.scene-description').textContent.toLowerCase();
+                const letter = item.querySelector('.scene-letter').textContent.toLowerCase();
+                
+                const matches = description.includes(searchTerm) || letter.includes(searchTerm);
+                
+                if (searchTerm === '' || matches) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+            
+            if (visibleCount === 0 && searchTerm !== '') {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>
+                        
